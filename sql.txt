@@ -1,0 +1,13 @@
+CREATE DATABASE chatDB
+
+
+CREATE TABLE IF NOT EXISTS cadUsuario (
+    cdUsuario INT AUTO_INCREMENT PRIMARY KEY,
+    nmUsuario VARCHAR(256),
+    sobrenomeUsuario VARCHAR(256),
+    email VARCHAR(256),
+    senha VARCHAR(256),
+    dtCriacao DATETIME,
+    imagemPerfil MEDIUMTEXT   
+);
+
