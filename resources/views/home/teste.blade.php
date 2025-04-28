@@ -155,7 +155,10 @@
         <!-- Profile Modal -->
         <div class="profile-modal" id="profileModal">
             <div class="profile-header">
-                <h4>Meu Perfil</h4>
+                <h4>Perfil</h4>
+                <button class="close-btn" id="closeProfileBtn">
+                    <i class="fas fa-times"></i>
+                </button>
                 <button class="close-btn" id="closeProfileBtn">
                     <i class="fas fa-times"></i>
                 </button>
@@ -192,7 +195,7 @@
                     </div> --}}
                 </div>
             
-                <form action="" method="POST">
+                <form  action="{{ route('LogOut') }}" method="GET">
                     @csrf
                     <button type="submit" class="logout-btn">
                         <i class="fas fa-sign-out-alt"></i> Sair

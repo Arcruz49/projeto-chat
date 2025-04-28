@@ -11,3 +11,29 @@ CREATE TABLE IF NOT EXISTS cadUsuario (
     imagemPerfil MEDIUMTEXT   
 );
 
+
+CREATE TABLE IF NOT EXISTS cadStatusSolicitacao
+(
+	cdStatusSolicitacao INT PRIMARY KEY AUTO_INCREMENT,
+    descStatus varchar(100)
+);
+
+INSERT INTO cadStatusSolicitacao (descStatus) VALUES ('Pendente');
+INSERT INTO cadStatusSolicitacao (descStatus) VALUES ('Aceito');
+INSERT INTO cadStatusSolicitacao (descStatus) VALUES ('Recusado');
+INSERT INTO cadStatusSolicitacao (descStatus) VALUES ('Bloqueado');
+
+
+CREATE TABLE IF NOT EXISTS cadusuario_Amizade
+(
+    cdusuario_Amizade INT PRIMARY KEY AUTO_INCREMENT,
+    cdUsuarioEnvioSolicitacao INT NOT NULL,
+    cdUsuarioRecebeuSolicitacao INT NOT NULL,
+    cdStatusSolicitacao INT, 
+    dtEnvioSolicitacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    dtRespostaSolicitacao DATETIME NULL,
+    
+    FOREIGN KEY (cdUsuarioEnvioSolicitacao) REFERENCES cadUsuario(cdUsuario),
+    FOREIGN KEY (cdUsuarioRecebeuSolicitacao) REFERENCES cadUsuario(cdUsuario),
+    FOREIGN KEY (cdStatusSolicitacao) REFERENCES cadStatusSolicitacao(cdStatusSolicitacao)
+);

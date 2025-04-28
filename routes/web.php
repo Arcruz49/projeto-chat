@@ -15,3 +15,5 @@ Route::post('/register', [LoginController::class, 'RegisterUser'])->name('regist
 Route::post('/loginUser', [LoginController::class, 'LoginUser'])->name('loginUser');
 
 Route::get('/home', [HomeController::class, 'Index'])->name('Home');
+
+Route::get('/logout', [LoginController::class, 'LogOut'])->name('LogOut');

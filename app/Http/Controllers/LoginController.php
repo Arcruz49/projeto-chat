@@ -7,6 +7,8 @@ use App\Models\CadUsuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+
 
 class LoginController extends Controller
 {
@@ -131,11 +133,13 @@ class LoginController extends Controller
 
                 session(['user' => $user]); 
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Login bem-sucedido.',
-                    'user' => $user 
-                ]);
+                return redirect()->route('Home');
+
+                // return response()->json([
+                //     'success' => true,
+                //     'message' => 'Login bem-sucedido.',
+                //     'user' => $user 
+                // ]);
             } else {
                 return response()->json([
                     'success' => false,
@@ -150,5 +154,12 @@ class LoginController extends Controller
         }
     }
 
-    
+    public function LogOut()
+    {
+        Auth::logout();
+
+        Session::flush();
+
+        return redirect()->route('login');
+    }
 }
