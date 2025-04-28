@@ -159,9 +159,7 @@
                 <button class="close-btn" id="closeProfileBtn">
                     <i class="fas fa-times"></i>
                 </button>
-                <button class="close-btn" id="closeProfileBtn">
-                    <i class="fas fa-times"></i>
-                </button>
+                
             </div>
             
             <div class="profile-content">
@@ -172,11 +170,16 @@
                 <h3 class="profile-name">{{ $user->nmUsuario }} {{ $user->sobrenomeUsuario }}</h3>
             
                 <span class="profile-status">Online</span>
+
+                <div>
+                    Amigos: {{ $qtdAmizades }}
+                </div>
             
                 <div class="profile-details">
                     <div class="detail-item">
                         <div class="detail-label">E-mail</div>
                         <div class="detail-value">{{ $user->email }}</div>
+
                     </div>
             
                     <div class="detail-item">
