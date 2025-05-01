@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Models\CadUsuario;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,6 +38,17 @@ class HomeController extends Controller
         }
 
         return 0;
+    }
+
+    public function SearchUsers(Request $request)
+    {
+        try {
+            $searchTerm = $request->input('searchTerm'); // busca da query string
+            $user = CadUsuario::where('email', $searchTerm)->first();
+            return response()->json(['users' => $user ? [$user] : []]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Erro ao buscar usuários'], 500);
+        }
     }
     
 }

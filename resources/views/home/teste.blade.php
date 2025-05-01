@@ -171,8 +171,13 @@
             
                 <span class="profile-status">Online</span>
 
-                <div>
+                <div class="profile-friends">
                     Amigos: {{ $qtdAmizades }}
+                    <button id="openModalBtn" class="btn">
+                        <i class="fas fa-user-plus me-2 text-white"></i> 
+                    </button>
+                    
+
                 </div>
             
                 <div class="profile-details">
@@ -209,40 +214,280 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Abrir/fechar modal de perfil
-        const profileBtn = document.getElementById('profileBtn');
-        const closeProfileBtn = document.getElementById('closeProfileBtn');
-        const profileModal = document.getElementById('profileModal');
-        
-        profileBtn.addEventListener('click', () => {
-            profileModal.classList.add('open');
-        });
-        
-        closeProfileBtn.addEventListener('click', () => {
-            profileModal.classList.remove('open');
-        });
-        
-        // Auto-resize do textarea de mensagem
-        const chatInput = document.querySelector('.chat-input');
-        
-        chatInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-        
-        // Selecionar conversa
-        const conversationItems = document.querySelectorAll('.conversation-item');
-        
-        conversationItems.forEach(item => {
-            item.addEventListener('click', () => {
-                conversationItems.forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
+
+
+    <!-- Modal -->
+    <div class="friend-request-modal" id="friendRequestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Gerenciar Amizades</h5>
+                <button type="button" class="close-btn" id="closeFriendRequestModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Abas -->
+                <ul class="nav nav-tabs" id="friendRequestTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="search-tab" data-bs-toggle="tab" data-bs-target="#search-tab-pane" type="button" role="tab">
+                            <i class="fas fa-search me-2"></i>Buscar
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests-tab-pane" type="button" role="tab">
+                            <i class="fas fa-user-clock me-2"></i>Solicitações
+                            <span class="badge bg-primary ms-2" id="pendingRequestsBadge">2</span>
+                        </button>
+                    </li>
+                </ul>
                 
-                // Aqui você pode adicionar lógica para carregar a conversa selecionada
+                <!-- Conteúdo das abas -->
+                <div class="tab-content" id="friendRequestTabsContent">
+                    <!-- Tab Buscar -->
+                    <div class="tab-pane fade show active" id="search-tab-pane" role="tabpanel">
+                        <div class="search-section mt-3">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" 
+                                       id="friendSearchInput" placeholder="Buscar usuários...">
+                                <button class="btn btn-primary" type="button" id="searchFriendBtn">
+                                    Buscar
+                                </button>
+                            </div>
+                            
+                            <div class="search-results">
+                                <div class="list-group" id="searchResultsList">
+                                    <!-- Resultados serão inseridos via JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Solicitações -->
+                    <div class="tab-pane fade" id="requests-tab-pane" role="tabpanel">
+                        <div class="requests-section mt-3">
+                            <div class="list-group" id="requestsList">
+                                <!-- Solicitações serão inseridas via JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Elementos do DOM
+            const sampleUsers = [
+                { id: 1, name: "Ana Silva", avatar: "https://randomuser.me/api/portraits/women/44.jpg" },
+                { id: 2, name: "Carlos Oliveira", avatar: "https://randomuser.me/api/portraits/men/22.jpg" },
+                { id: 3, name: "Juliana Costa", avatar: "https://randomuser.me/api/portraits/women/33.jpg" }
+            ];
+        
+            const sampleRequests = [
+                { id: 101, sender: { name: "Marcos Santos", avatar: "https://randomuser.me/api/portraits/men/32.jpg" }, date: "10/05/2023 14:30" },
+                { id: 102, sender: { name: "Patrícia Lima", avatar: "https://randomuser.me/api/portraits/women/68.jpg" }, date: "09/05/2023 09:15" }
+            ];
+        
+            function openModal() {
+                $('#friendRequestModal').addClass('show');
+                loadPendingRequests();
+            }
+        
+            function closeModal() {
+                $('#friendRequestModal').removeClass('show');
+            }
+        
+            function loadPendingRequests() {
+                const $requestsList = $('#requestsList');
+                $requestsList.empty();
+        
+                if (sampleRequests.length > 0) {
+                    sampleRequests.forEach(request => {
+                        const html = `
+                            <div class="list-group-item">
+                                <div class="user-info">
+                                    <img src="${request.sender.avatar}" class="user-avatar">
+                                    <div>
+                                        <div>${request.sender.name}</div>
+                                        <small class="text-muted">Enviado em: ${request.date}</small>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="btn-action btn-accept" data-request-id="${request.id}">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn-action btn-decline" data-request-id="${request.id}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        $requestsList.append(html);
+                    });
+        
+                    $('#pendingRequestsBadge').text(sampleRequests.length).show();
+                } else {
+                    $requestsList.html(`
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Nenhuma solicitação pendente</p>
+                        </div>
+                    `);
+                    $('#pendingRequestsBadge').hide();
+                }
+        
+                $('.btn-accept').off('click').on('click', acceptRequest);
+                $('.btn-decline').off('click').on('click', declineRequest);
+            }
+        
+            // function searchUsers() {
+            //     const searchTerm = $('#friendSearchInput').val().trim().toLowerCase();
+            //     const $resultsList = $('#searchResultsList');
+        
+            //     if (searchTerm.length > 0) {
+            //         const filteredUsers = sampleUsers.filter(user =>
+            //             user.name.toLowerCase().includes(searchTerm)
+            //         );
+            //         displaySearchResults(filteredUsers);
+            //     } else {
+            //         $resultsList.html('<div class="empty-state"><p>Digite um nome para buscar</p></div>');
+            //     }
+            // }
+
+
+            function searchUsers() {
+                const searchTerm = $('#friendSearchInput').val().trim();
+                const $resultsList = $('#searchResultsList');
+
+                if (searchTerm.length > 0) {
+                    $.ajax({
+                        url: '/searchUsers',
+                        method: 'GET',
+                        data: { searchTerm: searchTerm },
+                        success: function(response) {
+                            displaySearchResults(response.users); // espera-se um JSON com array "users"
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Erro ao buscar usuários:', error);
+                            $resultsList.html('<div class="empty-state"><p>Erro ao buscar usuários</p></div>');
+                        }
+                    });
+                } else {
+                    $resultsList.html('<div class="empty-state"><p>Digite um nome para buscar</p></div>');
+                }
+            }
+
+        
+            function displaySearchResults(users) {
+                const $resultsList = $('#searchResultsList');
+                $resultsList.empty();
+        
+                if (users.length > 0) {
+                    users.forEach(user => {
+                        const html = `
+                            <div class="list-group-item">
+                                <div class="user-info">
+                                    <img src="${user.avatar}" class="user-avatar">
+                                    <span>${user.name}</span>
+                                </div>
+                                <button class="btn-action btn-send" data-user-id="${user.id}">
+                                    <i class="fas fa-user-plus me-1"></i> Enviar
+                                </button>
+                            </div>
+                        `;
+                        $resultsList.append(html);
+                    });
+        
+                    $('.btn-send').off('click').on('click', sendFriendRequest);
+                } else {
+                    $resultsList.html('<div class="empty-state"><p>Nenhum usuário encontrado</p></div>');
+                }
+            }
+        
+            function sendFriendRequest(e) {
+                const $btn = $(e.currentTarget);
+                const userId = $btn.data('user-id');
+                const userName = $btn.closest('.list-group-item').find('.user-info span').text();
+                alert(`Solicitação enviada para ${userName} (ID: ${userId})`);
+                // Requisição AJAX real aqui
+            }
+        
+            function acceptRequest(e) {
+                const $btn = $(e.currentTarget);
+                const requestId = $btn.data('request-id');
+                const $item = $btn.closest('.list-group-item');
+                alert(`Solicitação ${requestId} aceita!`);
+                $item.remove();
+                updateRequestsCount();
+            }
+        
+            function declineRequest(e) {
+                const $btn = $(e.currentTarget);
+                const requestId = $btn.data('request-id');
+                const $item = $btn.closest('.list-group-item');
+                alert(`Solicitação ${requestId} recusada!`);
+                $item.remove();
+                updateRequestsCount();
+            }
+        
+            function updateRequestsCount() {
+                const count = $('#requestsList .list-group-item').length;
+        
+                if (count > 0) {
+                    $('#pendingRequestsBadge').text(count).show();
+                } else {
+                    $('#pendingRequestsBadge').hide();
+                    $('#requestsList').html(`
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Nenhuma solicitação pendente</p>
+                        </div>
+                    `);
+                }
+            }
+        
+            // Event Listeners
+            $('#openModalBtn').on('click', openModal);
+            $('#closeFriendRequestModal').on('click', closeModal);
+            $('#searchFriendBtn').on('click', searchUsers);
+            $('#friendSearchInput').on('keypress', function (e) {
+                if (e.key === 'Enter') searchUsers();
+            });
+        
+            // Inicialização
+            loadPendingRequests();
+        
+        
+            // Modal de perfil
+            $('#profileBtn').on('click', () => {
+                $('#profileModal').addClass('open');
+            });
+        
+            $('#closeProfileBtn').on('click', () => {
+                $('#profileModal').removeClass('open');
+            });
+        
+            // Auto resize textarea
+            $('.chat-input').on('input', function () {
+                $(this).css('height', 'auto').css('height', this.scrollHeight + 'px');
+            });
+        
+            // Selecionar conversa
+            $('.conversation-item').on('click', function () {
+                $('.conversation-item').removeClass('active');
+                $(this).addClass('active');
+                // Lógica adicional aqui
             });
         });
     </script>
+        
 </body>
 </html>

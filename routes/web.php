@@ -17,3 +17,6 @@ Route::post('/loginUser', [LoginController::class, 'LoginUser'])->name('loginUse
 Route::get('/home', [HomeController::class, 'Index'])->name('Home');
 
 Route::get('/logout', [LoginController::class, 'LogOut'])->name('LogOut');
+
+Route::get('/searchUsers', [HomeController::class, 'SearchUsers'])->name('SearchUsers');
+
