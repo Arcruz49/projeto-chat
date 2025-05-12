@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Providers\RouteServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +12,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Registro do RouteServiceProvider
+        $this->app->register(RouteServiceProvider::class);
     }
 
     /**
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Aqui vai a lógica de inicialização
     }
 }
+

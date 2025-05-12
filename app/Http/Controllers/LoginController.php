@@ -162,4 +162,28 @@ class LoginController extends Controller
 
         return redirect()->route('login');
     }
+
+
+    public function loginDir(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+    
+    
+        $user = CadUsuario::where('email', $credentials['email'])->first();
+    
+        if ($user && Hash::check($credentials['password'], $user->senha)) {
+            $token = auth('api')->login($user);
+    
+            return response()->json([
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => auth('api')->factory()->getTTL() * 60,
+            ]);
+        }
+    
+        return response()->json(['error' => 'Credenciais inválidas'], 401);
+    }
+    
+    
+
 }
