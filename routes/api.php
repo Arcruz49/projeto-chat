@@ -11,5 +11,4 @@ Route::middleware('auth:api')->get('/perfil', function () {
     return response()->json(auth('api')->user());
 });
 
-Route::post('/alterar-senha', [ApiController::class, 'AlterarSenha']);
-
+Route::middleware('auth:api')->post('/alterar-senha', [ApiController::class, 'AlterarSenha']);
