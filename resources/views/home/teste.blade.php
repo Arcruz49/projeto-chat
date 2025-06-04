@@ -7,7 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/chat/chat.css') }}">
-    
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 </head>
 <body>
     <div class="chat-container">
@@ -283,6 +284,14 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
+
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+
         $(document).ready(function () {
             // Elementos do DOM
             const sampleUsers = [
@@ -385,6 +394,7 @@
                 }
             }
 
+            
         
             function displaySearchResults(users) {
                 const $resultsList = $('#searchResultsList');
@@ -396,9 +406,9 @@
                             <div class="list-group-item">
                                 <div class="user-info">
                                     <img src="${user.avatar}" class="user-avatar">
-                                    <span>${user.name}</span>
+                                    <span>${user.nmUsuario}</span>
                                 </div>
-                                <button class="btn-action btn-send" data-user-id="${user.id}">
+                                <button class="btn-action btn-send" data-user-id="${user.cdUsuario}">
                                     <i class="fas fa-user-plus me-1"></i> Enviar
                                 </button>
                             </div>
@@ -406,18 +416,35 @@
                         $resultsList.append(html);
                     });
         
-                    $('.btn-send').off('click').on('click', sendFriendRequest);
+                    $('.btn-send').off('click').on('click', function() {
+                        const userId = $(this).data('user-id');
+                        sendFriendRequest(userId);
+                    });
                 } else {
                     $resultsList.html('<div class="empty-state"><p>Nenhum usuário encontrado</p></div>');
                 }
             }
-        
-            function sendFriendRequest(e) {
-                const $btn = $(e.currentTarget);
-                const userId = $btn.data('user-id');
-                const userName = $btn.closest('.list-group-item').find('.user-info span').text();
-                alert(`Solicitação enviada para ${userName} (ID: ${userId})`);
-                // Requisição AJAX real aqui
+
+            function sendFriendRequest(userId){
+                $.ajax({
+                    url: '/sendFriendRequest',
+                    method: 'POST',
+                    data: { userId: userId },
+                    success: function(response) {
+                        if(response.success == true)
+                        {
+
+                        }
+                        else
+                        {
+                            console.log('error: ' + response.message)
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('error')
+                        
+                    }
+                });
             }
         
             function acceptRequest(e) {

@@ -19,6 +19,9 @@ class CadUsuario extends Authenticatable implements JWTSubject  // Implemente a 
         'email',
         'senha',
         'dtCriacao',
+        'imagemPerfil',
+        'biografia'
+
     ];
 
     public $timestamps = false;

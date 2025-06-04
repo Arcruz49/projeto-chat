@@ -20,3 +20,5 @@ Route::get('/logout', [LoginController::class, 'LogOut'])->name('LogOut');
 
 Route::get('/searchUsers', [HomeController::class, 'SearchUsers'])->name('SearchUsers');
 
+Route::post('/sendFriendRequest', [HomeController::class, 'SendFriendRequest'])->name('SendFriendRequest');
+
