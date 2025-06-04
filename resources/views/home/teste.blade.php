@@ -166,7 +166,22 @@
             <div class="profile-content">
                 
             
-                <img src="{{ $user->imagemPerfil ?? asset('images/defaultPPF.jpg') }}" alt="Profile" class="profile-img-large">
+                <form id="formUpload" action="/uploadProfileImage" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <input type="file" id="profileImageInput" name="profileImage" accept="image/*"  >
+                    
+                    @if($user->imagemPerfil)
+                        <img 
+                            src="data:image/jpeg;base64,{{ $user->imagemPerfil }}" 
+                            alt="Profile" 
+                            class="profile-img-large">
+                    @else
+                        <img 
+                            src="{{ asset('images/defaultPPF.jpg') }}" 
+                            alt="Profile" 
+                            class="profile-img-large">
+                    @endif
+                </form>
             
                 <h3 class="profile-name">{{ $user->nmUsuario }} {{ $user->sobrenomeUsuario }}</h3>
             
@@ -514,6 +529,42 @@
                 // Lógica adicional aqui
             });
         });
+
+        $(document).ready(function() {
+            // Clica na imagem → abre seletor de arquivos
+            $('#profileImage').on('click', function() {
+                $('#profileImageInput').click();
+            });
+
+            // Ao selecionar o arquivo, envia automaticamente
+            $('#profileImageInput').on('change', function() {
+                debugger
+                let formData = new FormData($('#uploadForm')[0]);
+                $.ajax({
+                    url: "{{ route('UploadProfileImage') }}",
+                    type: 'POST',
+                    data: formData,
+                    processData: false, // Impede que o jQuery processe os dados
+                    contentType: false, // Impede que o jQuery defina o cabeçalho
+                    success: function(response) {
+                        alert('Imagem atualizada com sucesso!');
+                        location.reload(); // Recarrega para atualizar a imagem exibida
+                    },
+                    error: function(xhr) {
+                        alert('Erro ao enviar imagem');
+                        console.log(xhr.responseText);
+                    }
+                });
+            });
+        });
+
+
+
+        $('#profileImage').on('click', function() {
+            $('#fileInput').click();
+        });
+
+        
     </script>
         
 </body>

@@ -22,3 +22,4 @@ Route::get('/searchUsers', [HomeController::class, 'SearchUsers'])->name('Search
 
 Route::post('/sendFriendRequest', [HomeController::class, 'SendFriendRequest'])->name('SendFriendRequest');
 
+Route::post('/uploadProfileImage', [HomeController::class, 'UploadProfileImage'])->name('UploadProfileImage');

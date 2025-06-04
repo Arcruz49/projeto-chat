@@ -82,5 +82,20 @@ class HomeController extends Controller
             return response()->json(['message' => 'Erro ao enviar a solicitação: ' . $ex->getMessage()], 500);
         }
     }
+
+    public function UploadProfileImage(Request $request){
+        // $request->validate([
+        // 'profileImage' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        // ]);
+        dd($request->file('profileImage'));
+        $user = session()->get('user');
+
+        $file = $request->file('profileImage');
+        $imageData = base64_encode(file_get_contents($file));
+        $user->imagemPerfil = $imageData;
+        $user->save();
+
+        return back()->with('success', 'Imagem atualizada com sucesso!');
+    }
     
 }
