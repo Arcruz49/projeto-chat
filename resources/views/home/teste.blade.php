@@ -17,8 +17,18 @@
             <div class="sidebar-header">
                 <h4>Conversas</h4>
                 <button class="profile-btn" id="profileBtn">
-                    <img src="{{ $user->imagemPerfil ?? asset('images/defaultPPF.jpg') }}" alt="Profile" class="profile-img">
-                    <i class="fas fa-chevron-down"></i>
+                    @if($user->imagemPerfil)
+                        <img 
+                            src="data:image/jpeg;base64,{{ $user->imagemPerfil }}" 
+                            alt="Profile" 
+                            class="profile-img">
+                    @else
+                        <img 
+                            src="{{ asset('images/defaultPPF.jpg') }}" 
+                            alt="Profile" 
+                            class="profile-img">
+                    @endif
+                                        <i class="fas fa-chevron-down"></i>
                 </button>
             </div>
             
@@ -409,8 +419,7 @@
                 }
             }
 
-            
-        
+
             function displaySearchResults(users) {
                 const $resultsList = $('#searchResultsList');
                 $resultsList.empty();
@@ -420,7 +429,7 @@
                         const html = `
                             <div class="list-group-item">
                                 <div class="user-info">
-                                    <img src="${user.avatar}" class="user-avatar">
+                                    <img src="data:image/jpeg;base64,${user.imagemPerfil}" class="user-avatar">
                                     <span>${user.nmUsuario}</span>
                                 </div>
                                 <button class="btn-action btn-send" data-user-id="${user.cdUsuario}">
@@ -531,24 +540,25 @@
         });
 
         $(document).ready(function() {
-            // Clica na imagem → abre seletor de arquivos
             $('#profileImage').on('click', function() {
                 $('#profileImageInput').click();
             });
 
-            // Ao selecionar o arquivo, envia automaticamente
             $('#profileImageInput').on('change', function() {
-                debugger
-                let formData = new FormData($('#uploadForm')[0]);
+                var formData = new FormData();
+                formData.append('profileImage', $('#profileImageInput')[0].files[0]);
                 $.ajax({
                     url: "{{ route('UploadProfileImage') }}",
                     type: 'POST',
                     data: formData,
-                    processData: false, // Impede que o jQuery processe os dados
-                    contentType: false, // Impede que o jQuery defina o cabeçalho
+                    processData: false, 
+                    contentType: false, 
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}' 
+                    },
                     success: function(response) {
                         alert('Imagem atualizada com sucesso!');
-                        location.reload(); // Recarrega para atualizar a imagem exibida
+                        location.reload(); 
                     },
                     error: function(xhr) {
                         alert('Erro ao enviar imagem');

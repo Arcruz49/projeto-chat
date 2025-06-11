@@ -87,7 +87,7 @@ class HomeController extends Controller
         // $request->validate([
         // 'profileImage' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         // ]);
-        dd($request->file('profileImage'));
+        //dd($request->file('profileImage'));
         $user = session()->get('user');
 
         $file = $request->file('profileImage');
