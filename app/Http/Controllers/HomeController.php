@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 use App\Models\CadUsuario;
 
 use Exception;
-use GuzzleHttp\Psr7\Message;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\CadUsuarioAmizade;
+use Illuminate\Support\Facades\DB;
+
 
 
 use View;
@@ -96,6 +96,24 @@ class HomeController extends Controller
         $user->save();
 
         return back()->with('success', 'Imagem atualizada com sucesso!');
+    }
+
+    public function GetFriendsRequests(){
+        //const sampleRequests = [
+              //  { id: 101, sender: { name: "Marcos Santos", avatar: "https://randomuser.me/api/portraits/men/32.jpg" }, date: "10/05/2023 14:30" },
+                //{ id: 102, sender: { name: "Patrícia Lima", avatar: "https://randomuser.me/api/portraits/women/68.jpg" }, date: "09/05/2023 09:15" }
+            //];
+
+        $user = session()->get('user');
+
+        $query = DB::table('cadusuario_amizade as a')
+            ->leftJoin('cadusuario as b', 'a.cdUsuarioEnvioSolicitacao', '=', 'b.cdUsuario')
+            ->where('a.cdUsuarioRecebeuSolicitacao', $user->cdUsuario)
+            ->select('b.nmUsuario', 'b.imagemPerfil', 'a.dtEnvioSolicitacao', 'b.cdUsuario')
+            ->get();
+
+        return response()->json(['content' => $query, 'cdusuario' => $user->cdUsuario]);
+
     }
     
 }

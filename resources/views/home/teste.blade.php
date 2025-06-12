@@ -263,7 +263,7 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests-tab-pane" type="button" role="tab">
                             <i class="fas fa-user-clock me-2"></i>Solicitações
-                            <span class="badge bg-primary ms-2" id="pendingRequestsBadge">2</span>
+                            {{-- <span class="badge bg-primary ms-2" id="pendingRequestsBadge">2</span> --}}
                         </button>
                     </li>
                 </ul>
@@ -342,44 +342,60 @@
             function loadPendingRequests() {
                 const $requestsList = $('#requestsList');
                 $requestsList.empty();
-        
-                if (sampleRequests.length > 0) {
-                    sampleRequests.forEach(request => {
-                        const html = `
-                            <div class="list-group-item">
-                                <div class="user-info">
-                                    <img src="${request.sender.avatar}" class="user-avatar">
-                                    <div>
-                                        <div>${request.sender.name}</div>
-                                        <small class="text-muted">Enviado em: ${request.date}</small>
+
+                $.ajax({
+                    url: '/getFriendsRequests',
+                    method: 'GET',
+                    success: function(response) {
+                        
+                        if (response.content.length > 0) {
+                            response.content.forEach(request => {
+                                const html = `
+                                    <div class="list-group-item">
+                                        <div class="user-info">
+                                            <img src="data:image/jpeg;base64,${request.imagemPerfil}" class="user-avatar">
+                                            <div>
+                                                <div>${request.nmUsuario}</div>
+                                                <small class="">Enviado em: ${request.dtEnvioSolicitacao}</small>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <button class="btn-action btn-accept" data-request-id="${request.cdUsuario}">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn-action btn-decline" data-request-id="${request.cdUsuario}">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
                                     </div>
+                                `;
+                                $requestsList.append(html);
+                            });
+                
+                            $('#pendingRequestsBadge').text(response.length).show();
+                        } else {
+                            $requestsList.html(`
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>Nenhuma solicitação pendente</p>
                                 </div>
-                                <div>
-                                    <button class="btn-action btn-accept" data-request-id="${request.id}">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="btn-action btn-decline" data-request-id="${request.id}">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        $requestsList.append(html);
-                    });
+                            `);
+                            $('#pendingRequestsBadge').hide();
+                        }
+                
+                        $('.btn-accept').off('click').on('click', acceptRequest);
+                        $('.btn-decline').off('click').on('click', declineRequest);
+
+
+
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Erro ao buscar lista de solicitações:', error);
+                    }
+                });
+
         
-                    $('#pendingRequestsBadge').text(sampleRequests.length).show();
-                } else {
-                    $requestsList.html(`
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>Nenhuma solicitação pendente</p>
-                        </div>
-                    `);
-                    $('#pendingRequestsBadge').hide();
-                }
-        
-                $('.btn-accept').off('click').on('click', acceptRequest);
-                $('.btn-decline').off('click').on('click', declineRequest);
+                
             }
         
             // function searchUsers() {
