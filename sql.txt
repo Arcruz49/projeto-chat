@@ -37,3 +37,19 @@ CREATE TABLE IF NOT EXISTS cadusuario_Amizade
     FOREIGN KEY (cdUsuarioRecebeuSolicitacao) REFERENCES cadUsuario(cdUsuario),
     FOREIGN KEY (cdStatusSolicitacao) REFERENCES cadStatusSolicitacao(cdStatusSolicitacao)
 );
+
+CREATE TABLE IF NOT EXISTS cadMensagem
+
+	CREATE TABLE cadMensagem (
+		cdMensagem INT PRIMARY KEY AUTO_INCREMENT,
+		cdUsuarioEnvio INT NOT NULL,
+		cdUsuarioRecebeu INT NOT NULL,
+		visualizado BOOLEAN DEFAULT FALSE,
+		descMensagem TEXT NOT NULL,
+		dtEnvio DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+
+		FOREIGN KEY (cdUsuarioEnvio) REFERENCES cadUsuario(cdUsuario),
+		FOREIGN KEY (cdUsuarioRecebeu) REFERENCES cadUsuario(cdUsuario)
+	);
+};

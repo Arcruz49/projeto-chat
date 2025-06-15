@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CadStatusSolicitacao extends Model
 {
-    protected $table = 'cadStatusSolicitacao'; // Nome da tabela
+    protected $table = 'cadStatusSolicitacao'; 
 
     protected $primaryKey = 'cdStatusSolicitacao';
 

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Models\CadStatusSolicitacao;
 use App\Models\CadUsuario;
 
 use Exception;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 
 use View;
+use function PHPUnit\Framework\throwException;
 
 class HomeController extends Controller
 {
@@ -59,35 +61,32 @@ class HomeController extends Controller
 
         try{
             
-        $userIdReceive = $request->input('userId'); 
-        $user = session()->get('user');
+            $userIdReceive = $request->input('userId'); 
+            $user = session()->get('user');
 
 
-        $dados = [
-            'cdUsuarioEnvioSolicitacao' => $user->cdUsuario,
-            'cdUsuarioRecebeuSolicitacao' => $userIdReceive,
-            'cdStatusSolicitacao' => 1,
-            'dtEnvioSolicitacao' => now(), 
-            'dtRespostaSolicitacao' => null,
-        ];
+            $dados = [
+                'cdUsuarioEnvioSolicitacao' => $user->cdUsuario,
+                'cdUsuarioRecebeuSolicitacao' => $userIdReceive,
+                'cdStatusSolicitacao' => 1,
+                'dtEnvioSolicitacao' => now(), 
+                'dtRespostaSolicitacao' => null,
+            ];
 
 
-        CadUsuarioAmizade::create($dados);
-        return response()->json([
-            'success' => true,
-            'message' => 'Solicitação enviada'
-        ]);        
+            CadUsuarioAmizade::create($dados);
+            return response()->json([
+                'success' => true,
+                'message' => 'Solicitação enviada'
+            ]);        
         }
         catch(Exception $ex){
-            return response()->json(['message' => 'Erro ao enviar a solicitação: ' . $ex->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Erro ao enviar a solicitação: ' . $ex->getMessage()], 500);
         }
     }
 
     public function UploadProfileImage(Request $request){
-        // $request->validate([
-        // 'profileImage' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        // ]);
-        //dd($request->file('profileImage'));
+
         $user = session()->get('user');
 
         $file = $request->file('profileImage');
@@ -99,21 +98,62 @@ class HomeController extends Controller
     }
 
     public function GetFriendsRequests(){
-        //const sampleRequests = [
-              //  { id: 101, sender: { name: "Marcos Santos", avatar: "https://randomuser.me/api/portraits/men/32.jpg" }, date: "10/05/2023 14:30" },
-                //{ id: 102, sender: { name: "Patrícia Lima", avatar: "https://randomuser.me/api/portraits/women/68.jpg" }, date: "09/05/2023 09:15" }
-            //];
 
         $user = session()->get('user');
 
         $query = DB::table('cadusuario_amizade as a')
             ->leftJoin('cadusuario as b', 'a.cdUsuarioEnvioSolicitacao', '=', 'b.cdUsuario')
             ->where('a.cdUsuarioRecebeuSolicitacao', $user->cdUsuario)
-            ->select('b.nmUsuario', 'b.imagemPerfil', 'a.dtEnvioSolicitacao', 'b.cdUsuario')
+            ->where('a.cdStatusSolicitacao', CadStatusSolicitacao::where('descStatus', 'Pendente')->value('cdStatusSolicitacao'))
+            ->select('a.cdusuario_Amizade', 'b.nmUsuario', 'b.imagemPerfil', 'a.dtEnvioSolicitacao', 'b.cdUsuario')
             ->get();
 
         return response()->json(['content' => $query, 'cdusuario' => $user->cdUsuario]);
 
+    }
+
+    public function AcceptFriendRequest(Request $request){
+
+        try
+        {
+            $requestId = $request -> input('requestId');
+            if($requestId == null || $requestId == 0) throw new Exception('código inválido');
+
+            $cadUsuarioAmizade = CadUsuarioAmizade::where('cdusuario_Amizade', $requestId)->first();
+            $cadUsuarioAmizade->cdStatusSolicitacao = CadStatusSolicitacao::where('descStatus', 'Aceito')->value('cdStatusSolicitacao');
+            $cadUsuarioAmizade->save();
+
+            return response()->json([
+            'success' => true,
+            'message' => 'Solicitação aceita'
+            ]);      
+        }
+        catch(Exception $ex)
+        {
+            return response()->json(['success' => false, 'message' => 'Erro ao aceitar a solicitação: ' . $ex->getMessage()], 500);
+        }
+    }
+
+    public function RejectFriendRequest(Request $request){
+
+        try
+        {
+            $requestId = $request -> input('requestId');
+            if($requestId == null || $requestId == 0) throw new Exception('código inválido');
+
+            $cadUsuarioAmizade = CadUsuarioAmizade::where('cdusuario_Amizade', $requestId)->first();
+            $cadUsuarioAmizade->cdStatusSolicitacao = CadStatusSolicitacao::where('descStatus', 'Recusado')->value('cdStatusSolicitacao');
+            $cadUsuarioAmizade->save();
+
+            return response()->json([
+            'success' => true,
+            'message' => 'Solicitação recusada'
+            ]);      
+        }
+        catch(Exception $ex)
+        {
+            return response()->json(['success' => false, 'message' => 'Erro ao recusar a solicitação: ' . $ex->getMessage()], 500);
+        }
     }
     
 }

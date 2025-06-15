@@ -25,3 +25,8 @@ Route::post('/sendFriendRequest', [HomeController::class, 'SendFriendRequest'])-
 Route::post('/uploadProfileImage', [HomeController::class, 'UploadProfileImage'])->name('UploadProfileImage');
 
 Route::get('/getFriendsRequests', [HomeController::class, 'GetFriendsRequests'])->name('GetFriendsRequests');
+
+Route::post('/acceptFriendRequest', [HomeController::class, 'AcceptFriendRequest'])->name('AcceptFriendRequest');
+
+Route::post('/rejectFriendRequest', [HomeController::class, 'RejectFriendRequest'])->name('RejectFriendRequest');
+

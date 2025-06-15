@@ -37,7 +37,7 @@
                 <input type="text" class="search-input" placeholder="Pesquisar conversas">
             </div>
             
-            {{-- <ul class="conversation-list">
+            <ul class="conversation-list">
                 <!-- Conversa 1 -->
                 <li class="conversation-item active">
                     <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="conversation-avatar">
@@ -51,54 +51,7 @@
                     <div class="unread-badge">3</div>
                 </li>
                 
-                <!-- Conversa 2 -->
-                <li class="conversation-item">
-                    <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="User" class="conversation-avatar">
-                    <div class="conversation-content">
-                        <div class="conversation-header">
-                            <span class="conversation-name">Carlos Oliveira</span>
-                            <span class="conversation-time">Ontem</span>
-                        </div>
-                        <p class="conversation-preview">Você já viu o novo projeto?</p>
-                    </div>
-                </li>
-                
-                <!-- Conversa 3 -->
-                <li class="conversation-item">
-                    <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="User" class="conversation-avatar">
-                    <div class="conversation-content">
-                        <div class="conversation-header">
-                            <span class="conversation-name">Grupo de Trabalho</span>
-                            <span class="conversation-time">Seg</span>
-                        </div>
-                        <p class="conversation-preview">Marcos: Precisamos marcar uma reunião</p>
-                    </div>
-                    <div class="unread-badge">5</div>
-                </li>
-                
-                <!-- Mais conversas... -->
-                <li class="conversation-item">
-                    <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="User" class="conversation-avatar">
-                    <div class="conversation-content">
-                        <div class="conversation-header">
-                            <span class="conversation-name">Ricardo Almeida</span>
-                            <span class="conversation-time">Dom</span>
-                        </div>
-                        <p class="conversation-preview">Obrigado pela ajuda!</p>
-                    </div>
-                </li>
-                
-                <li class="conversation-item">
-                    <img src="https://randomuser.me/api/portraits/women/33.jpg" alt="User" class="conversation-avatar">
-                    <div class="conversation-content">
-                        <div class="conversation-header">
-                            <span class="conversation-name">Juliana Costa</span>
-                            <span class="conversation-time">Sex</span>
-                        </div>
-                        <p class="conversation-preview">Mandei os documentos que você pediu</p>
-                    </div>
-                </li>
-            </ul> --}}
+            </ul>
         </div>
         
         <!-- Chat Area -->
@@ -178,20 +131,24 @@
             
                 <form id="formUpload" action="/uploadProfileImage" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <input type="file" id="profileImageInput" name="profileImage" accept="image/*"  >
-                    
-                    @if($user->imagemPerfil)
-                        <img 
-                            src="data:image/jpeg;base64,{{ $user->imagemPerfil }}" 
-                            alt="Profile" 
-                            class="profile-img-large">
-                    @else
-                        <img 
-                            src="{{ asset('images/defaultPPF.jpg') }}" 
-                            alt="Profile" 
-                            class="profile-img-large">
-                    @endif
+
+                    <label for="profileImageInput" style="cursor: pointer;">
+                        @if($user->imagemPerfil)
+                            <img 
+                                src="data:image/jpeg;base64,{{ $user->imagemPerfil }}" 
+                                alt="Profile" 
+                                class="profile-img-large">
+                        @else
+                            <img 
+                                src="{{ asset('images/defaultPPF.jpg') }}" 
+                                alt="Profile" 
+                                class="profile-img-large">
+                        @endif
+                    </label>
+
+                    <input type="file" id="profileImageInput" name="profileImage" accept="image/*" style="display: none;">
                 </form>
+
             
                 <h3 class="profile-name">{{ $user->nmUsuario }} {{ $user->sobrenomeUsuario }}</h3>
             
@@ -360,10 +317,10 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <button class="btn-action btn-accept" data-request-id="${request.cdUsuario}">
+                                            <button class="btn-action btn-accept" data-request-id="${request.cdusuario_Amizade}">
                                                 <i class="fas fa-check"></i>
                                             </button>
-                                            <button class="btn-action btn-decline" data-request-id="${request.cdUsuario}">
+                                            <button class="btn-action btn-decline" data-request-id="${request.cdusuario_Amizade}">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
@@ -491,8 +448,28 @@
                 const $btn = $(e.currentTarget);
                 const requestId = $btn.data('request-id');
                 const $item = $btn.closest('.list-group-item');
-                alert(`Solicitação ${requestId} aceita!`);
-                $item.remove();
+                
+                $.ajax({
+                    url: '/acceptFriendRequest',
+                    method: 'POST',
+                    data: { requestId: requestId },
+                    success: function(response) {
+                        if(response.success == true)
+                        {
+                                console.log('deu bom: ' + response.message)
+                        }
+                        else
+                        {
+                            console.log('error: ' + response.message)
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('error')
+                        
+                    }
+                });
+
+
                 updateRequestsCount();
             }
         
@@ -500,7 +477,27 @@
                 const $btn = $(e.currentTarget);
                 const requestId = $btn.data('request-id');
                 const $item = $btn.closest('.list-group-item');
-                alert(`Solicitação ${requestId} recusada!`);
+                
+                $.ajax({
+                    url: '/rejectFriendRequest',
+                    method: 'POST',
+                    data: { requestId: requestId },
+                    success: function(response) {
+                        if(response.success == true)
+                        {
+                                console.log('deu bom: ' + response.message)
+                        }
+                        else
+                        {
+                            console.log('error: ' + response.message)
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('error')
+                        
+                    }
+                });
+
                 $item.remove();
                 updateRequestsCount();
             }
