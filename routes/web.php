@@ -31,3 +31,9 @@ Route::post('/acceptFriendRequest', [HomeController::class, 'AcceptFriendRequest
 Route::post('/rejectFriendRequest', [HomeController::class, 'RejectFriendRequest'])->name('RejectFriendRequest');
 
 Route::get('/getChats', [HomeController::class, 'GetChats'])->name('GetChats');
+
+Route::get('/getChats', [HomeController::class, 'GetChats'])->name('GetChats');
+
+Route::get('/chat/{cdUsuarioAmigo}', [HomeController::class, 'OpenChat']);
+
+Route::post('/chat/send', [HomeController::class, 'SendMessage']);

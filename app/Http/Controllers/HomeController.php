@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Http\Request;
 use App\Models\CadUsuarioAmizade;
 use Illuminate\Support\Facades\DB;
+use App\Models\CadMensagem;
 
 
 
@@ -173,7 +174,6 @@ class HomeController extends Controller
                     $query->where('a.cdUsuarioRecebeuSolicitacao', $userId)
                         ->orWhere('a.cdUsuarioEnvioSolicitacao', $userId);
                 })
-                // aqui, seleciona o id do outro usuário da amizade
                 ->select(
                     DB::raw("CASE 
                         WHEN a.cdUsuarioEnvioSolicitacao = $userId THEN a.cdUsuarioRecebeuSolicitacao
@@ -181,7 +181,6 @@ class HomeController extends Controller
                     END as cdUsuarioAmigo"),
                     'a.dtRespostaSolicitacao'
                 )
-                // junta com a tabela de usuários para obter dados do amigo
                 ->join('cadusuario as b', function($join) {
                     $join->on('b.cdUsuario', '=', DB::raw("CASE 
                         WHEN a.cdUsuarioEnvioSolicitacao = ".session()->get('user')->cdUsuario." THEN a.cdUsuarioRecebeuSolicitacao
@@ -199,6 +198,59 @@ class HomeController extends Controller
                 'message' => $ex->getMessage()
             ], 500);
         }
+    }
+
+
+    public function OpenChat($cdUsuarioAmigo)
+    {
+        $user = session()->get('user');
+        $cdUsuarioLogado = $user->cdUsuario;
+        
+        $mensagens = CadMensagem::where(function ($query) use ($cdUsuarioLogado, $cdUsuarioAmigo) {
+                $query->where('cdUsuarioEnvio', $cdUsuarioLogado)
+                      ->where('cdUsuarioRecebeu', $cdUsuarioAmigo);
+            })
+            ->orWhere(function ($query) use ($cdUsuarioLogado, $cdUsuarioAmigo) {
+                $query->where('cdUsuarioEnvio', $cdUsuarioAmigo)
+                      ->where('cdUsuarioRecebeu', $cdUsuarioLogado);
+            })
+            ->orderBy('dtEnvio', 'asc')
+            ->get();
+        return response()->json($mensagens);
+    }
+
+    public function SendMessage(Request $request)
+    {
+
+
+        try{
+            $user = session()->get('user');
+
+            if (!$user) {
+                return response()->json(['erro' => 'Usuário não autenticado'], 401);
+            }
+
+            $cdUsuarioLogado = $user->cdUsuario;
+
+            $request->validate([
+                'cdUsuarioRecebeu' => 'required|integer',
+                'descMensagem' => 'required|string|max:1000'
+            ]);
+
+            $mensagem = CadMensagem::create([
+                'cdUsuarioEnvio' => $cdUsuarioLogado,
+                'cdUsuarioRecebeu' => $request->cdUsuarioRecebeu,
+                'descMensagem' => $request->descMensagem,
+                'visualizado' => 0,
+                'dtEnvio' => now(), 
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'mensagem enviada com sucesso']);
+        }
+        catch(Exception $ex){
+            return response()->json(['success' => false, 'error' => 'erro ao enviar mensagem'.$ex->getMessage()]);
+        }
+        
     }
 
 

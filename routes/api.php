@@ -33,3 +33,7 @@ Route::middleware('auth:api')->post('/acceptFriendRequest', [ApiController::clas
 Route::middleware('auth:api')->post('/rejectFriendRequest', [ApiController::class, 'RejectFriendRequest']);
 
 Route::middleware('auth:api')->post('/uploadProfileImage', [ApiController::class, 'UploadProfileImage']);
+
+Route::middleware('auth:api')->get('/chat/{cdUsuarioAmigo}', [ApiController::class, 'OpenChat']);
+
+Route::middleware('auth:api')->post('/chat/send', [ApiController::class, 'SendMessage']);

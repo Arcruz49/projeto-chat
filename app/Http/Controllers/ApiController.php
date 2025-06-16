@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Models\CadStatusSolicitacao;
 use App\Models\CadUsuario;
 use App\Models\CadUsuarioAmizade;
+use App\Models\CadMensagem;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\LoginController;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -273,6 +274,57 @@ class ApiController extends Controller
 
 
 
+    public function OpenChat($cdUsuarioAmigo)
+    {
+        $user = auth('api')->user();
+        $cdUsuarioLogado = $user->cdUsuario;
+        
+        $mensagens = CadMensagem::where(function ($query) use ($cdUsuarioLogado, $cdUsuarioAmigo) {
+                $query->where('cdUsuarioEnvio', $cdUsuarioLogado)
+                      ->where('cdUsuarioRecebeu', $cdUsuarioAmigo);
+            })
+            ->orWhere(function ($query) use ($cdUsuarioLogado, $cdUsuarioAmigo) {
+                $query->where('cdUsuarioEnvio', $cdUsuarioAmigo)
+                      ->where('cdUsuarioRecebeu', $cdUsuarioLogado);
+            })
+            ->orderBy('dtEnvio', 'desc')
+            ->get();
+        return response()->json($mensagens);
+    }
+
+    public function SendMessage(Request $request)
+    {
+
+
+        try{
+            $user = auth('api')->user();
+
+            if (!$user) {
+                return response()->json(['erro' => 'Usuário não autenticado'], 401);
+            }
+
+            $cdUsuarioLogado = $user->cdUsuario;
+
+            $request->validate([
+                'cdUsuarioRecebeu' => 'required|integer',
+                'descMensagem' => 'required|string|max:1000'
+            ]);
+
+            $mensagem = CadMensagem::create([
+                'cdUsuarioEnvio' => $cdUsuarioLogado,
+                'cdUsuarioRecebeu' => $request->cdUsuarioRecebeu,
+                'descMensagem' => $request->descMensagem,
+                'visualizado' => 0,
+                'dtEnvio' => now(), 
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'mensagem enviada com sucesso']);
+        }
+        catch(Exception $ex){
+            return response()->json(['success' => false, 'error' => 'erro ao enviar mensagem'.$ex->getMessage()]);
+        }
+        
+    }
 
 
 

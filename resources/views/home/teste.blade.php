@@ -11,6 +11,7 @@
 
 </head>
 <body>
+
     <div class="chat-container">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -110,7 +111,7 @@
             
             <div class="chat-input-area">
                 <textarea class="chat-input" placeholder="Digite uma mensagem..." rows="1"></textarea>
-                <button class="send-btn">
+                <button class="send-btn" onclick="sendMessage()">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
@@ -267,6 +268,10 @@
 
     <script>
 
+        const USER_ID = {{ session('user')['cdUsuario'] ?? 'null' }};
+        let userConversa;
+        let intervaloReload = null;
+
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -276,16 +281,7 @@
 
         $(document).ready(function () {
             // Elementos do DOM
-            const sampleUsers = [
-                { id: 1, name: "Ana Silva", avatar: "https://randomuser.me/api/portraits/women/44.jpg" },
-                { id: 2, name: "Carlos Oliveira", avatar: "https://randomuser.me/api/portraits/men/22.jpg" },
-                { id: 3, name: "Juliana Costa", avatar: "https://randomuser.me/api/portraits/women/33.jpg" }
-            ];
-        
-            const sampleRequests = [
-                { id: 101, sender: { name: "Marcos Santos", avatar: "https://randomuser.me/api/portraits/men/32.jpg" }, date: "10/05/2023 14:30" },
-                { id: 102, sender: { name: "Patrícia Lima", avatar: "https://randomuser.me/api/portraits/women/68.jpg" }, date: "09/05/2023 09:15" }
-            ];
+            
         
             function openModal() {
                 $('#friendRequestModal').addClass('show');
@@ -593,6 +589,7 @@
 
                         response.content.forEach(function (chat) {
                             let nome = chat.nmUsuario;
+                            let cdUsuario = chat.cdUsuarioAmigo;
                             let horario = new Date(chat.dtRespostaSolicitacao).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                             let imagem = chat.imagemPerfil 
                                 ? `data:image/jpeg;base64,${chat.imagemPerfil}` 
@@ -600,7 +597,7 @@
                             let mensagemPreview = "Última mensagem aqui"; // pode ajustar isso com base em dados reais
 
                             let item = `
-                            <li class="conversation-item" onclick="openChat('${nome}', '${imagem}')">
+                            <li class="conversation-item" onclick="openChat('${nome}', '${cdUsuario}', '${imagem}')">
                                 <img src="${imagem}" alt="User" class="conversation-avatar">
                                 <div class="conversation-content">
                                     <div class="conversation-header">
@@ -624,14 +621,87 @@
             });
         });
 
-        function openChat(nome, imagem) {
-            $('.chat-area').show(); 
+        function carregarMensagens() {
+            if (!userConversa) return;
 
-            $('.chat-header h5').text(nome);
+            $.ajax({
+                url: '/chat/' + userConversa,
+                method: 'GET',
+                success: function(mensagens) {
+                $('.chat-messages').html(''); // limpa mensagens antes de renderizar
 
-            let urlImagem = imagem && imagem.startsWith('data:image') ? imagem : '/images/defaultPPF.jpg';
-            $('.chat-header img').attr('src', urlImagem);
+                mensagens.forEach(function(msg) {
+                    let classe = msg.cdUsuarioEnvio == USER_ID ? 'sent' : 'received'; // USER_ID é usuário logado
+                    let hora = new Date(msg.dtEnvio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                    $('.chat-messages').append(`
+                    <div class="message ${classe}">
+                        <p>${msg.descMensagem}</p>
+                        <div class="message-time">${hora}</div>
+                    </div>
+                    `);
+                });
+                },
+                error: function(err) {
+                console.error('Erro ao carregar mensagens:', err);
+                }
+            });
+            }
+
+            function openChat(nome, cdUsuarioAmigo, imagem) {
+                userConversa = cdUsuarioAmigo;
+                $('.chat-area').show();
+                $('.chat-header h5').text(nome);
+
+                let urlImagem = imagem && imagem.startsWith('data:image') ? imagem : '/images/defaultPPF.jpg';
+                $('.chat-header img').attr('src', urlImagem);
+
+                // Carrega as mensagens uma primeira vez
+                carregarMensagens();
+
+                // Limpa qualquer intervalo anterior (para evitar vários loops)
+                if (intervaloReload) {
+                    clearInterval(intervaloReload);
+                }
+
+                // Define um intervalo para recarregar as mensagens a cada 1 segundo (1000 ms)
+                intervaloReload = setInterval(carregarMensagens, 1000);
+            }
+
+
+        function sendMessage() {
+            const formData = new FormData();
+            const texto = $('.chat-input').val();
+            formData.append('cdUsuarioRecebeu', userConversa);
+            formData.append('descMensagem', texto);
+
+            $.ajax({
+                url: '/chat/send',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(mensagem) {
+                    console.log("Mensagem enviada com sucesso:", mensagem);
+
+                    $('.chat-messages').append(`
+                        <div class="message sent">
+                            <p>${texto}</p>
+                            <div class="message-time">${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </div>
+                    `);
+                },
+                error: function(err) {
+                    console.error('Erro ao enviar mensagem:', err.responseText);
+                }
+            });
         }
+
+
+
 
 
         $('#profileImage').on('click', function() {
