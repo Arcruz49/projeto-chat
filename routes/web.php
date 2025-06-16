@@ -30,3 +30,4 @@ Route::post('/acceptFriendRequest', [HomeController::class, 'AcceptFriendRequest
 
 Route::post('/rejectFriendRequest', [HomeController::class, 'RejectFriendRequest'])->name('RejectFriendRequest');
 
+Route::get('/getChats', [HomeController::class, 'GetChats'])->name('GetChats');

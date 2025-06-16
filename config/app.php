@@ -123,4 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'aliases' => [
+        // outros aliases aqui...
+        'Image' => Intervention\Image\Facades\Image::class,
+    ],
+
 ];

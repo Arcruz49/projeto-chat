@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\CadStatusSolicitacao;
 use App\Models\CadUsuario;
-
+use Intervention\Image\Facades\Image;
 use Exception;
 use Illuminate\Http\Request;
 use App\Models\CadUsuarioAmizade;
@@ -85,6 +85,8 @@ class HomeController extends Controller
         }
     }
 
+
+
     public function UploadProfileImage(Request $request){
 
         $user = session()->get('user');
@@ -96,6 +98,7 @@ class HomeController extends Controller
 
         return back()->with('success', 'Imagem atualizada com sucesso!');
     }
+
 
     public function GetFriendsRequests(){
 
@@ -121,6 +124,7 @@ class HomeController extends Controller
 
             $cadUsuarioAmizade = CadUsuarioAmizade::where('cdusuario_Amizade', $requestId)->first();
             $cadUsuarioAmizade->cdStatusSolicitacao = CadStatusSolicitacao::where('descStatus', 'Aceito')->value('cdStatusSolicitacao');
+            $cadUsuarioAmizade->dtRespostaSolicitacao = now();
             $cadUsuarioAmizade->save();
 
             return response()->json([
@@ -143,6 +147,7 @@ class HomeController extends Controller
 
             $cadUsuarioAmizade = CadUsuarioAmizade::where('cdusuario_Amizade', $requestId)->first();
             $cadUsuarioAmizade->cdStatusSolicitacao = CadStatusSolicitacao::where('descStatus', 'Recusado')->value('cdStatusSolicitacao');
+            $cadUsuarioAmizade->dtRespostaSolicitacao = now();
             $cadUsuarioAmizade->save();
 
             return response()->json([
@@ -155,5 +160,47 @@ class HomeController extends Controller
             return response()->json(['success' => false, 'message' => 'Erro ao recusar a solicitação: ' . $ex->getMessage()], 500);
         }
     }
+
+    public function GetChats()
+    {
+        try {
+            $user = session()->get('user');
+            $userId = $user->cdUsuario;
+
+            $chats = DB::table('cadusuario_amizade as a')
+                ->where('a.cdStatusSolicitacao', 2)
+                ->where(function($query) use ($userId) {
+                    $query->where('a.cdUsuarioRecebeuSolicitacao', $userId)
+                        ->orWhere('a.cdUsuarioEnvioSolicitacao', $userId);
+                })
+                // aqui, seleciona o id do outro usuário da amizade
+                ->select(
+                    DB::raw("CASE 
+                        WHEN a.cdUsuarioEnvioSolicitacao = $userId THEN a.cdUsuarioRecebeuSolicitacao
+                        ELSE a.cdUsuarioEnvioSolicitacao
+                    END as cdUsuarioAmigo"),
+                    'a.dtRespostaSolicitacao'
+                )
+                // junta com a tabela de usuários para obter dados do amigo
+                ->join('cadusuario as b', function($join) {
+                    $join->on('b.cdUsuario', '=', DB::raw("CASE 
+                        WHEN a.cdUsuarioEnvioSolicitacao = ".session()->get('user')->cdUsuario." THEN a.cdUsuarioRecebeuSolicitacao
+                        ELSE a.cdUsuarioEnvioSolicitacao
+                    END"));
+                })
+                ->groupBy('cdUsuarioAmigo', 'b.nmUsuario', 'a.dtRespostaSolicitacao', 'b.imagemPerfil')
+                ->selectRaw('b.nmUsuario, b.imagemPerfil')
+                ->get();
+
+            return response()->json(['success' => true, 'content' => $chats]);
+        } catch (Exception $ex) {
+            return response()->json([
+                'success' => false,
+                'message' => $ex->getMessage()
+            ], 500);
+        }
+    }
+
+
     
 }

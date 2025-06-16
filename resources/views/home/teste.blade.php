@@ -38,7 +38,7 @@
             </div>
             
             <ul class="conversation-list">
-                <!-- Conversa 1 -->
+                {{-- <!-- Conversa de exemplo não descomentar -->
                 <li class="conversation-item active">
                     <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="conversation-avatar">
                     <div class="conversation-content">
@@ -49,17 +49,17 @@
                         <p class="conversation-preview">Ótimo, então nos vemos amanhã!</p>
                     </div>
                     <div class="unread-badge">3</div>
-                </li>
+                </li> --}}
                 
             </ul>
         </div>
         
         <!-- Chat Area -->
-        {{-- <div class="chat-area">
+        <div class="chat-area" style="display: none">
             <div class="chat-header">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="conversation-avatar">
+                <img src="/images/defaultPPF.jpg" alt="User" class="conversation-avatar">
                 <div>
-                    <h5 class="mb-0">Ana Silva</h5>
+                    <h5 class="mb-0">Nome do Usuário</h5>
                     <small class="text-muted">Online</small>
                 </div>
             </div>
@@ -114,7 +114,7 @@
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
-        </div> --}}
+        </div>
         
         <!-- Profile Modal -->
         <div class="profile-modal" id="profileModal">
@@ -581,6 +581,57 @@
             });
         });
 
+
+        $(document).ready(function () {
+            $.ajax({
+                url: "/getChats",
+                type: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        let lista = $('.conversation-list');
+                        lista.empty(); // limpa a ul antes de preencher
+
+                        response.content.forEach(function (chat) {
+                            let nome = chat.nmUsuario;
+                            let horario = new Date(chat.dtRespostaSolicitacao).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            let imagem = chat.imagemPerfil 
+                                ? `data:image/jpeg;base64,${chat.imagemPerfil}` 
+                                : '/images/defaultPPF.jpg'; // caminho da imagem padrão
+                            let mensagemPreview = "Última mensagem aqui"; // pode ajustar isso com base em dados reais
+
+                            let item = `
+                            <li class="conversation-item" onclick="openChat('${nome}', '${imagem}')">
+                                <img src="${imagem}" alt="User" class="conversation-avatar">
+                                <div class="conversation-content">
+                                    <div class="conversation-header">
+                                        <span class="conversation-name">${nome}</span>
+                                        <span class="conversation-time">${horario}</span>
+                                    </div>
+                                    <p class="conversation-preview">${mensagemPreview}</p>
+                                </div>
+                                <div class="unread-badge">1</div> <!-- pode ser dinâmico se tiver campo -->
+                            </li>`;
+                            
+                            lista.append(item);
+                        });
+                    } else {
+                        console.error('Erro ao carregar chats:', response.message);
+                    }
+                },
+                error: function (xhr) {
+                    console.log('Erro na requisição:', xhr.responseText);
+                }
+            });
+        });
+
+        function openChat(nome, imagem) {
+            $('.chat-area').show(); 
+
+            $('.chat-header h5').text(nome);
+
+            let urlImagem = imagem && imagem.startsWith('data:image') ? imagem : '/images/defaultPPF.jpg';
+            $('.chat-header img').attr('src', urlImagem);
+        }
 
 
         $('#profileImage').on('click', function() {
