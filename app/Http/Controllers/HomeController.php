@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\CadStatusSolicitacao;
-use App\Models\CadUsuario;
+use App\Models\cadUsuario;
 use Intervention\Image\Facades\Image;
 use Exception;
 use Illuminate\Http\Request;
@@ -49,7 +49,7 @@ class HomeController extends Controller
     {
         try {
             $searchTerm = $request->input('searchTerm'); // busca da query string
-            $user = CadUsuario::where('email', $searchTerm)->first();
+            $user = cadUsuario::where('email', $searchTerm)->first();
             return response()->json(['users' => $user ? [$user] : []]);
 
             // dd(response()->json(['users' => $user ? [$user] : []]));
@@ -105,8 +105,8 @@ class HomeController extends Controller
 
         $user = session()->get('user');
 
-        $query = DB::table('cadusuario_amizade as a')
-            ->leftJoin('cadusuario as b', 'a.cdUsuarioEnvioSolicitacao', '=', 'b.cdUsuario')
+        $query = DB::table('cadusuario_Amizade as a')
+            ->leftJoin('cadUsuario as b', 'a.cdUsuarioEnvioSolicitacao', '=', 'b.cdUsuario')
             ->where('a.cdUsuarioRecebeuSolicitacao', $user->cdUsuario)
             ->where('a.cdStatusSolicitacao', CadStatusSolicitacao::where('descStatus', 'Pendente')->value('cdStatusSolicitacao'))
             ->select('a.cdusuario_Amizade', 'b.nmUsuario', 'b.imagemPerfil', 'a.dtEnvioSolicitacao', 'b.cdUsuario')
@@ -168,7 +168,7 @@ class HomeController extends Controller
             $user = session()->get('user');
             $userId = $user->cdUsuario;
 
-            $chats = DB::table('cadusuario_amizade as a')
+            $chats = DB::table('cadusuario_Amizade as a')
                 ->where('a.cdStatusSolicitacao', 2)
                 ->where(function($query) use ($userId) {
                     $query->where('a.cdUsuarioRecebeuSolicitacao', $userId)
@@ -181,7 +181,7 @@ class HomeController extends Controller
                     END as cdUsuarioAmigo"),
                     'a.dtRespostaSolicitacao'
                 )
-                ->join('cadusuario as b', function($join) {
+                ->join('cadUsuario as b', function($join) {
                     $join->on('b.cdUsuario', '=', DB::raw("CASE 
                         WHEN a.cdUsuarioEnvioSolicitacao = ".session()->get('user')->cdUsuario." THEN a.cdUsuarioRecebeuSolicitacao
                         ELSE a.cdUsuarioEnvioSolicitacao

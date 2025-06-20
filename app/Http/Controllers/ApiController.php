@@ -49,8 +49,8 @@ class ApiController extends Controller
 
         $user = auth('api')->user();
 
-        $query = DB::table('cadusuario_amizade as a')
-            ->leftJoin('cadusuario as b', 'a.cdUsuarioEnvioSolicitacao', '=', 'b.cdUsuario')
+        $query = DB::table('cadusuario_Amizade as a')
+            ->leftJoin('cadUsuario as b', 'a.cdUsuarioEnvioSolicitacao', '=', 'b.cdUsuario')
             ->where('a.cdUsuarioRecebeuSolicitacao', $user->cdUsuario)
             ->where('a.cdStatusSolicitacao', CadStatusSolicitacao::where('descStatus', 'Pendente')->value('cdStatusSolicitacao'))
             ->select('a.cdusuario_Amizade', 'b.nmUsuario', 'b.imagemPerfil', 'a.dtEnvioSolicitacao', 'b.cdUsuario')
@@ -66,7 +66,7 @@ class ApiController extends Controller
             $user = auth('api')->user();
             $userId = $user->cdUsuario;
 
-            $chats = DB::table('cadusuario_amizade as a')
+            $chats = DB::table('cadusuario_Amizade as a')
                 ->where('a.cdStatusSolicitacao', 2)
                 ->where(function($query) use ($userId) {
                     $query->where('a.cdUsuarioRecebeuSolicitacao', $userId)
@@ -81,7 +81,7 @@ class ApiController extends Controller
                     'a.dtRespostaSolicitacao'
                 )
                 // Faz join com a tabela de usuários para pegar os dados do amigo
-                ->join('cadusuario as b', function($join) use ($userId) {
+                ->join('cadUsuario as b', function($join) use ($userId) {
                     $join->on('b.cdUsuario', '=', DB::raw("CASE 
                         WHEN a.cdUsuarioEnvioSolicitacao = $userId THEN a.cdUsuarioRecebeuSolicitacao
                         ELSE a.cdUsuarioEnvioSolicitacao
